@@ -7,10 +7,10 @@ TEMPLATE  = subdirs
 SUBDIRS = \
     liteeditor \
     litefind    \
-    quickopen \
-    filebrowser \
-    bookmarks   \
-    welcome
+#    quickopen \
+#    filebrowser \
+#    bookmarks   \
+#    welcome
 
 
 contains(DEFINES, LITEIDE_QTWEBKIT) {
