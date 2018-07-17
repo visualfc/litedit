@@ -1,0 +1,7 @@
+[SETUP]
+NAME = "Empty File"
+AUTHOR = visualfc
+INFO = create a new empty file
+TYPE = file
+FILES = root
+OPEN = root
