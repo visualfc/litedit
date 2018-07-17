@@ -9,7 +9,8 @@ SUBDIRS = \
     litefind    \
     quickopen \
     filebrowser \
-    bookmarks
+    bookmarks   \
+    welcome
 
 
 contains(DEFINES, LITEIDE_QTWEBKIT) {
