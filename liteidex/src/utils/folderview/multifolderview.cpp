@@ -80,6 +80,16 @@ QString MultiFolderView::fileRootPath(const QModelIndex &index) const
     return m_model->fileRootPath(index);
 }
 
+void MultiFolderView::setRootRole(const QString &path, int role, const QVariant &value)
+{
+    m_model->setRootRole(path,role,value);
+}
+
+void MultiFolderView::resetRootRole(const QString &path, int role)
+{
+    m_model->resetRootRole(path,role);
+}
+
 bool MultiFolderView::addRootPath(const QString &path)
 {
     if (m_model->isRootPath(path)) {

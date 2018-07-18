@@ -123,11 +123,21 @@ QStringList MultiFolderWindow::folderList() const
     return m_folderListView->rootPathList();
 }
 
+void MultiFolderWindow::updateFolderRole(const QStringList &folders)
+{
+    foreach (QString folder, folders) {
+        m_folderListView->setRootRole(folder,Qt::DisplayRole, QFileInfo(folder).fileName()+" [project]");
+        //m_folderListView->setRootRole(folder,Qt::TextColorRole,QColor(Qt::blue));
+        //m_folderListView->resetRootRole(folder,Qt::TextColorRole);
+    }
+}
+
 void MultiFolderWindow::setFolderList(const QStringList &folders)
 {
     QStringList all = folders;
     all.removeDuplicates();
     m_folderListView->setRootPathList(all);
+    updateFolderRole(all);
     foreach (QString folder, all) {
         m_liteApp->recentManager()->addRecent(folder,"folder");
     }
@@ -141,6 +151,7 @@ void MultiFolderWindow::addFolderList(const QString &folder)
     if (!m_folderListView->addRootPath(folder)) {
         return;
     }
+    updateFolderRole(QStringList() << folder);
     m_liteApp->recentManager()->addRecent(folder,"folder");
     m_folderListView->expandFolder(folder,true);
 }

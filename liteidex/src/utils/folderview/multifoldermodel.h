@@ -36,6 +36,9 @@ public:
     explicit MultiFolderModel(QObject* parent = 0);
     virtual ~MultiFolderModel();
 public:
+    void setRootRole(const QString &path, int role, const QVariant &value);
+    void resetRootRole(const QString &path, int role);
+
     QModelIndex addRootPath(const QString &path);
     void removeRootPath(const QString &path);
     void removeRoot(const QModelIndex &index);

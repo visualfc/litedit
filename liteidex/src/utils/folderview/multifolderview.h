@@ -42,6 +42,8 @@ public:
     bool addRootPath(const QString &path);
     void setRootPathList(const QStringList &pathList);
     QStringList rootPathList() const;
+    void setRootRole(const QString &path, int role, const QVariant &value);
+    void resetRootRole(const QString &path, int role);
     void clear();
     void expandFolder(const QString &path, bool expand);
     QList<QModelIndex> indexForPath(const QString &path) const;

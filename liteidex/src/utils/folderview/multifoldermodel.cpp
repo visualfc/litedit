@@ -119,6 +119,44 @@ bool QDirSortItemComparator::sort(const QDirSortItem &n1, const QDirSortItem &n2
     return r < 0;
 }
 
+class MultiFolderFileSystemModelEx : public FileSystemModelEx
+{
+public:
+    explicit MultiFolderFileSystemModelEx(MultiFolderModel *parent)
+        : FileSystemModelEx(parent),model(parent)
+    {
+
+    }
+    void setRootIndex(const QModelIndex &index)
+    {
+        rootIndex = index;
+    }
+    void setRootRole(int role, const QVariant &value)
+    {
+        roleMap[role] = value;
+    }
+    void resetRootRole(int role)
+    {
+        roleMap.remove(role);
+    }
+    QVariant data(const QModelIndex &index, int role) const
+    {
+        if (rootIndex == index) {
+            QMap<int,QVariant>::const_iterator it = roleMap.find(role);
+            if (it != roleMap.end()) {
+                return it.value();
+            }
+        }
+        return FileSystemModelEx::data(index,role);
+    }
+
+protected:
+    QMap<int,QVariant> roleMap;
+    MultiFolderModel  *model;
+    QModelIndex        rootIndex;
+};
+
+
 MultiFolderModel::MultiFolderModel(QObject *parent)
     : MultiIndexModel(parent)
 {
@@ -140,12 +178,32 @@ MultiFolderModel::~MultiFolderModel()
 
 }
 
+void MultiFolderModel::setRootRole(const QString &path, int role, const QVariant &value)
+{
+    foreach (QAbstractItemModel *model, this->sourceModelList()) {
+        MultiFolderFileSystemModelEx *m = (MultiFolderFileSystemModelEx*)model;
+        if (m->rootPath() == path) {
+            m->setRootRole(role,value);
+        }
+    }
+}
+
+void MultiFolderModel::resetRootRole(const QString &path, int role)
+{
+    foreach (QAbstractItemModel *model, this->sourceModelList()) {
+        MultiFolderFileSystemModelEx *m = (MultiFolderFileSystemModelEx*)model;
+        if (m->rootPath() == path) {
+            m->resetRootRole(role);
+        }
+    }
+}
+
 QModelIndex MultiFolderModel::addRootPath(const QString &path)
 {
     if (!QDir::isAbsolutePath(path)) {
         return QModelIndex();
     }
-    QFileSystemModel *model = new FileSystemModelEx(this);
+    MultiFolderFileSystemModelEx *model = new MultiFolderFileSystemModelEx(this);
     model->setFilter(m_filters);
     model->setResolveSymlinks(m_resolveSymlinks);
     model->setReadOnly(m_isReadOnly);
@@ -153,6 +211,7 @@ QModelIndex MultiFolderModel::addRootPath(const QString &path)
     model->setNameFilters(m_nameFilters);
     connect(model,SIGNAL(directoryLoaded(QString)),this,SLOT(slotDirectoryLoaded(QString)));
     QModelIndex index = model->setRootPath(path);
+    model->setRootIndex(index);
     if (this->addSourceModel(model,index)) {
         return this->mapFromSourceEx(model,index);
     }

@@ -43,6 +43,7 @@ public:
     virtual void setShowHideFiles(bool b);
     virtual void setShowDetails(bool b);
     virtual void setSyncEditor(bool b);
+    void updateFolderRole(const QStringList &folders);
 public slots:
     void doubleClickedFolderView(const QModelIndex &index);
     void enterKeyPressedFolderView(const QModelIndex &index);
