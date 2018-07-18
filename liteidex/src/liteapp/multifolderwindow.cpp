@@ -25,6 +25,7 @@
 #include "liteapp_global.h"
 #include <QMenu>
 #include <QAction>
+#include <QDebug>
 //lite_memory_check_begin
 #if defined(WIN32) && defined(_MSC_VER) &&  defined(_DEBUG)
      #define _CRTDBG_MAP_ALLOC
@@ -101,6 +102,7 @@ void MultiFolderWindow::doubleClickedFolderView(const QModelIndex &index)
     if (info.isFile()) {
        m_liteApp->fileManager()->openEditor(info.filePath());
     }
+    //qDebug() << m_folderListView->fileRootPath(index);
 }
 
 void MultiFolderWindow::enterKeyPressedFolderView(const QModelIndex &index)
