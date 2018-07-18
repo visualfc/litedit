@@ -7,7 +7,7 @@ TEMPLATE  = subdirs
 SUBDIRS = \
     liteeditor \
     litefind    \
-#    quickopen \
+    quickopen \
 #    filebrowser \
 #    bookmarks   \
 #    welcome
