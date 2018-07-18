@@ -41,11 +41,11 @@ struct FileUtil
     static QString canExec(QString file, QStringList exts = QStringList());
     static QString lookPath(const QString &fileName,const QProcessEnvironment &env, bool bLocalPriority);
     static QString lookPathInDir(const QString &fileName,const QString &dir);
-    static QString lookupGoBin(const QString &bin, LiteApi::IApplication *app, bool bLiteAppPriority);
-    static QString lookupLiteBin(const QString &bin, LiteApi::IApplication *app);
+    static QString lookupGoBin(const QString &bin, LiteApi::IApplication *app, const QProcessEnvironment env, bool bLiteAppPriority);
+    static QString lookupLiteBin(const QString &bin, LiteApi::IApplication *app, const QProcessEnvironment env);
     static bool CopyDirectory(const QString &src, const QString &dest);
     static void openInExplorer(const QString &path);
-    static void openInShell(LiteApi::IApplication *app, const QString &path);
+    static void openInShell(const QProcessEnvironment &env, const QString &path);
 };
 
 struct GoExecute

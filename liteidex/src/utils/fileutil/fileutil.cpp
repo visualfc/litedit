@@ -22,7 +22,6 @@
 // Creator: visualfc <visualfc@gmail.com>
 
 #include "fileutil.h"
-#include "liteenvapi/liteenvapi.h"
 #include <QFileInfo>
 #include <QDir>
 #include <QProcess>
@@ -359,7 +358,7 @@ bool GoExecute::exec(const QString &workPath, const QString &target, const QStri
 #endif
 }
 
-QString FileUtil::lookupGoBin(const QString &bin, LiteApi::IApplication *app, bool bLiteAppPriority)
+QString FileUtil::lookupGoBin(const QString &bin, LiteApi::IApplication *app, const QProcessEnvironment env, bool bLiteAppPriority)
 {
     if (bLiteAppPriority) {
         QString find = FileUtil::findExecute(app->applicationPath()+"/"+bin);
@@ -367,7 +366,6 @@ QString FileUtil::lookupGoBin(const QString &bin, LiteApi::IApplication *app, bo
             return find;
         }
     }
-    QProcessEnvironment env = LiteApi::getGoEnvironment(app);
 #ifdef Q_OS_WIN
     QString sep = ";";
 #else
@@ -412,14 +410,14 @@ QString FileUtil::lookupGoBin(const QString &bin, LiteApi::IApplication *app, bo
             return find;
         }
     }
-    return FileUtil::lookupLiteBin(bin,app);
+    return FileUtil::lookupLiteBin(bin,app,env);
 }
 
-QString FileUtil::lookupLiteBin(const QString &bin, LiteApi::IApplication *app)
+QString FileUtil::lookupLiteBin(const QString &bin, LiteApi::IApplication *app, const QProcessEnvironment env)
 {
     QString find = FileUtil::findExecute(app->applicationPath()+"/"+bin);
     if (find.isEmpty()) {
-        find = FileUtil::lookPath(bin,LiteApi::getGoEnvironment(app),true);
+        find = FileUtil::lookPath(bin,env,true);
     }
     return find;
 }
@@ -538,7 +536,7 @@ static bool startDetachedEx(const QString &cmd, const QStringList &args, const Q
 #endif
 }
 
-void FileUtil::openInShell(LiteApi::IApplication *app, const QString &file)
+void FileUtil::openInShell(const QProcessEnvironment &env, const QString &file)
 {
     QFileInfo info(file);
     QDir dir;
@@ -547,13 +545,18 @@ void FileUtil::openInShell(LiteApi::IApplication *app, const QString &file)
     } else {
         dir = info.dir();
     }
-    QProcessEnvironment env = LiteApi::getCurrentEnvironment(app);
+    //check shell
     QString shell = env.value("LITEIDE_SHELL");
+#ifdef Q_OS_LINUX
+    if (shell.isEmpty()) {
+        shell="gnome-terminal;lxterminal;konsole;xfce4-terminal;xterm";
+    }
+#endif
     if (!shell.isEmpty()) {
         foreach (QString info, shell.split(";",QString::SkipEmptyParts)) {
             QStringList ar = info.split(" ",QString::SkipEmptyParts);
             if (ar.size() >= 1) {
-                QString cmd = FileUtil::lookPath(ar[0],LiteApi::getCurrentEnvironment(app),false);
+                QString cmd = FileUtil::lookPath(ar[0],env,false);
                 if (!cmd.isEmpty()) {
                     QString path = dir.path();
                     ar.pop_front();
@@ -572,8 +575,23 @@ void FileUtil::openInShell(LiteApi::IApplication *app, const QString &file)
         }
         return;
     }
+    //check LITEIDE_TERM
     QString cmd = env.value("LITEIDE_TERM");
     QStringList args = env.value("LITEIDE_TERMARGS").split(" ",QString::SkipEmptyParts);
+#ifdef Q_OS_MAC
+    if (cmd.isEmpty()) {
+        cmd = "/usr/bin/open";
+    }
+    if (args.isEmpty()) {
+        args << "-a" << "Terminal";
+    }
+#endif
+#ifdef Q_OS_WIN
+    if (cmd.isEmpty()) {
+        cmd = "%COMSPEC%";
+    }
+#endif
+
     QString path = dir.path();
 #ifdef Q_OS_MAC
     args.append(path);
