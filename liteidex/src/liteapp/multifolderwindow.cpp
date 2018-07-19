@@ -126,7 +126,8 @@ QStringList MultiFolderWindow::folderList() const
 void MultiFolderWindow::updateFolderRole(const QStringList &folders)
 {
     foreach (QString folder, folders) {
-        m_folderListView->setRootRole(folder,Qt::DisplayRole, QFileInfo(folder).fileName()+" [project]");
+        QString text = QFileInfo(folder).fileName()+" [project]";
+        m_folderListView->setRootRole(folder,Qt::DisplayRole,text );
         //m_folderListView->setRootRole(folder,Qt::TextColorRole,QColor(Qt::blue));
         //m_folderListView->resetRootRole(folder,Qt::TextColorRole);
     }
