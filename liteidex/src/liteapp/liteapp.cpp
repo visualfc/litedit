@@ -61,6 +61,7 @@
 #include <QPainter>
 #include <QComboBox>
 #include <QProcessEnvironment>
+#include <QDockWidget>
 #include <QDebug>
 //lite_memory_check_begin
 #if defined(WIN32) && defined(_MSC_VER) &&  defined(_DEBUG)
@@ -929,16 +930,54 @@ void LiteApp::loadState()
     } else {
         m_mainwindow->resize(800,600);
     }
-    m_mainwindow->restoreState(m_settings->value("liteapp/state").toByteArray());
     m_mainwindow->updateConer();
+    //fix Qt 5.9.6 QDockWidget bug
+#if QT_VERSION == 0x050906
+    QList<QDockWidget *> docks = m_mainwindow->findChildren<QDockWidget *>();
+    QList<int> horz;
+    QList<int> vert;
+    QList<QDockWidget*> ds;
+    foreach (QDockWidget *dock, docks) {
+        bool b = m_settings->value("dock_visible/"+dock->objectName()).toBool();
+        if (!b) {
+            continue;
+        }
+        dock->setVisible(b);
+        QSize sz = m_settings->value("dock_size/"+dock->objectName()).toSize();
+        horz << sz.width();
+        vert << sz.height();
+        ds << dock;
+    }
+    m_mainwindow->resizeDocks(ds,horz,Qt::Horizontal);
+    m_mainwindow->resizeDocks(ds,vert,Qt::Vertical);
+    foreach (QString id, m_actionManager->toolBarList()) {
+        QToolBar *tbar = m_actionManager->loadToolBar(id);
+        bool b = m_settings->value("toolbar_visible/"+tbar->objectName(),true).toBool();
+        tbar->setVisible(b);
+    }
+#else
+    m_mainwindow->restoreState(m_settings->value("liteapp/state").toByteArray());
+#endif
 }
 
 void LiteApp::saveState()
 {
     m_settings->setValue("liteapp/geometry",m_mainwindow->saveGeometry());
     m_settings->setValue("liteapp/state",m_mainwindow->saveState());
-}
 
+    //fix Qt 5.9.6 QDockWidget bug
+#if QT_VERSION == 0x050906
+    QList<QDockWidget *> docks = m_mainwindow->findChildren<QDockWidget *>();
+    foreach (QDockWidget *dock, docks) {
+        m_settings->setValue("dock_size/"+dock->objectName(),dock->size());
+        m_settings->setValue("dock_visible/"+dock->objectName(),dock->isVisible());
+    }
+    foreach (QString id, m_actionManager->toolBarList()) {
+        QToolBar *tbar = m_actionManager->loadToolBar(id);
+        m_settings->setValue("toolbar_visible/"+tbar->objectName(),tbar->isVisible());
+    }
+#endif
+}
 
 void LiteApp::loadSession(const QString &session)
 {
